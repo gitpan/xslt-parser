@@ -7,13 +7,12 @@ my $project = "";
 my $xslfile = "";
 my $xmlfile = "";
 
-push (@INC, ".");
 &process_arguments (@ARGV);
 print $/ if $XSLT::debug;
 $XSLT::Parser->openproject ($xmlfile, $xslfile);
-$XSLT::Parser->evaluate_xsl;
+$XSLT::Parser->process_project;
 print "Content-type: text/html$/$/" unless $noweb;
-$XSLT::Parser->print_xsl;
+$XSLT::Parser->print_result;
 
 exit;
 
@@ -23,17 +22,22 @@ sub process_arguments {
   if (@argv) {
     while ((@argv > 1) && ($argv[0] =~ /^\-/)) {
       my $param = shift @argv;
-      $noweb = "active" if ($param =~ /^\-n/i);
+
       $XSLT::debug = "active" if ($param =~ /^\-d/i);
+      $noweb = "active" if ($param =~ /^\-n/i);
+      $XSLT::warnings = "active" if ($param =~ /^\-w/i);
       if (($param =~ /^\-s/i) && ((@argv > 1) && ($argv[0] !~ /^\-/))) {
-        print "$param " if $XSLT::debug;
         $param = shift (@argv);
         $xslfile = $param;
       }
-      print "$param$/" if $XSLT::debug;
+
+      $noweb = "" if $XSLT::debug;
+      $XSLT::warnings = "" if $XSLT::debug;
+
     }
 
-    print "Debug: \"",$XSLT::debug,"\"$/NoWeb: \"$noweb\"$/" if $XSLT::debug;
+    print "Content-type: text/html$/$/" if $XSLT::debug;
+    print "Debug   : \"",$XSLT::debug,"\"$/NoWeb   : \"$noweb\"$/Warnings: \"",$XSLT::warnings,"\"$/" if $XSLT::debug;
 
     if (@argv && ($argv[0] !~ /^\-/)) {
       $project = shift (@argv);
@@ -44,8 +48,8 @@ sub process_arguments {
     } else {
       die "Error: no project specified, give a name of a project.$/";
     }
-    print "Project: \"",$project,"\"$/  XML-file: \"$xmlfile\"$/  XSL-file: \"$xslfile\"$/" if $XSLT::debug;
+    print "Project : \"",$project,"\"$/  XML-file: \"$xmlfile\"$/  XSL-file: \"$xslfile\"$/" if $XSLT::debug;
   } else {
-    die "Usage: $0 [options] <project>$/$/  -d[ebug]\t\tturn debugging mode on$/  -n[oweb]\t\tdon't print content-type$/  -s[tylesheet] <file>\tuse <file> instead of <project>.xsl as template$/";
+    die "Usage: $0 [options] <project>$/$/  -d[ebug]\t\tturn debugging mode on$/  -n[oweb]\t\tdon't print content-type$/  -s[tylesheet] <file>\tuse <file> instead of <project>.xsl as template$/  -w[arnings]\t\tturns warnings on$/";
   }
 }

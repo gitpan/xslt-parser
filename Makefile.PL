@@ -10,11 +10,9 @@ push(@extras,
 WriteMakefile(
               NAME	=> 'XML::XSLT',
               dist      => {COMPRESS => 'gzip', SUFFIX => '.gz'},
-              VERSION_FROM => 'version.h',
+              VERSION_FROM => 'XSLT.pm',
               PREREQ_PM => { XML::Parser => '2.26', XML::DOM => '1.25' },
-	      PM => { 'XSLTParser.pm' => '$(INST_LIBDIR)/XSLTParser.pm', 
-                      'XSLT.pm' => '$(INST_LIBDIR)/XSLT.pm',
-                      'version.h' => '$(INST_LIBDIR)/version.h'},
+	      PM => { 'XSLT.pm' => '$(INST_LIBDIR)/XSLT.pm' },
 	      @extras
              );
 

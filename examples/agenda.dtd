@@ -1,3 +1,14 @@
+<!ENTITY Aring  "&#38;#38;Aring;">
+<!ENTITY Eacute "&#38;#38;Eacute;">
+<!ENTITY eacute "&#38;#38;eacute;">
+<!ENTITY auml   "&#38;#38;auml;">
+<!ENTITY euml   "&#38;#38;euml;">
+<!ENTITY iuml   "&#38;#38;iuml;">
+<!ENTITY ouml   "&#38;#38;ouml;">
+<!ENTITY uuml   "&#38;#38;uuml;">
+<!ENTITY alpha  "&#38;#38;alpha;">
+<!ENTITY beta   "&#38;#38;beta;">
+
 <!ELEMENT AGENDA (MAAND*)>
 <!ELEMENT MAAND (PUNT+)>
 <!ELEMENT PUNT (TITEL?, DATUM?, ORG?, LINK?, COMMENTAAR?, INFO?)*>
