@@ -15,6 +15,11 @@ use XML::DOM;
 
 BEGIN {
   require XML::DOM;
+
+  my $needVersion = '1.25';
+  die "need at least XML::DOM version $needVersion (current=" . $XML::DOM::VERSION . ")"
+    unless $XML::DOM::VERSION >= $needVersion;
+
   use Exporter ();
   use vars qw( $VERSION @ISA @EXPORT);
 
@@ -80,10 +85,17 @@ sub _evaluate_contents {
   $_indent += 2;
   if ($current_xsl_node->hasChildNodes) {
     my $xsl_children = $current_xsl_node->getElementsByTagName('*','');
-    
-    foreach my $xsl_child (@$xsl_children) {
+
+
+    for (my $i=0;$i< $xsl_children->getLength();$i++) {
+      my $xsl_child = $xsl_children->item($i);
       $self->_examine_child ($xsl_child, $current_xml_node, $current_xml_selection_path);
+      $xsl_children = $current_xsl_node->getElementsByTagName('*','');
     }
+
+#    foreach my $xsl_child (@$xsl_children) {
+#      $self->_examine_child ($xsl_child, $current_xml_node, $current_xml_selection_path);
+#    }
   }
   $_indent -= 2;
   print " "x$_indent, "path: \"$current_xml_selection_path\"$/" if $XSLT::debug;
@@ -101,12 +113,49 @@ sub _examine_child {
 
     if ($current_xsl_child->getTagName =~ /^xsl:/i) {
 
-        if ($current_xsl_child->getTagName =~ /^xsl:stylesheet/i
-        || $current_xsl_child->getTagName =~ /^xsl:template/i
-        || $current_xsl_child->getTagName =~ /^xsl:sub-template/i) {
+        if ($current_xsl_child->getTagName =~ /^xsl:stylesheet/i) {
+	  $self->_evaluate_contents ($current_xsl_child, $current_xml_node,
+                                       "$current_xml_selection_path");
+	} elsif ($current_xsl_child->getTagName =~ /^xsl:template/i
+              || $current_xsl_child->getTagName =~ /^xsl:sub-template/i) {
+	      
+           # extend the base reference of the xml tree and recurse
+           my $xml_path_extension = $current_xsl_child->getAttribute('match');
 
-            # extend the base reference of the xml tree and recurse
-            my $xml_path_extension = $current_xsl_child->getAttribute('select');
+           # expand multiple options
+	   if (detect_or($xml_path_extension)) {
+	   
+              print "or detected$/" if $XSLT::debug;
+	      my ($sel1, $sel2) = parse_or($xml_path_extension);
+
+	      print "selections: $sel1 $sel2$/";
+              $current_xsl_child->setAttribute("match", $sel1);
+	      my $next_node = $current_xsl_child->getNextSibling();
+	      
+  	      while (detect_or($sel2)) {
+	   
+	        ($sel1,$sel2) = parse_or($sel2);
+		print "selections: $sel1 $sel2$/";
+		my $new_node = $current_xsl_child->cloneNode('deep');
+		$new_node->setAttribute("match", $sel1);
+
+		if (defined($next_node)) {
+		  $current_xsl_child->getParentNode()->insertBefore($new_node, $next_node);
+		} else {
+		  $current_xsl_child->getParentNode()->appendChild($new_node);
+		}
+	      }
+	      
+	      my $new_node2 = $current_xsl_child->cloneNode('deep');
+	      $new_node2->setAttribute("match", $sel2);
+	      if (defined($next_node)) {
+		$current_xsl_child->getParentNode()->insertBefore($new_node2, $next_node);
+	      } else {
+		$current_xsl_child->getParentNode()->appendChild($new_node2);
+	      }
+
+            }
+	    $xml_path_extension = $current_xsl_child->getAttribute('match');
             my $curr_xml_node = $self->parse_xml_selection ($current_xml_node,
                                     $current_xml_selection_path, $xml_path_extension);
             if ($curr_xml_node) {
@@ -147,6 +196,7 @@ sub _examine_child {
             my $xml_item = $self->parse_xml_selection ($current_xml_node, $current_xml_selection_path,
                                                                    $xml_selection);
 
+            print "haalt ie dit? xml-sel: $xml_selection\n curr_nod: $xml_item" if $XSLT::debug;
             if ($xml_item) {
               if ($xml_item->isTextNode) {
                 $current_xsl_child->appendChild($xml_item);
@@ -359,8 +409,10 @@ sub parse_xml_selection {
   my $content;
   my $child;
 
+  $selection =~ s/\|/\\\|/g;
   print " "x$_indent, "  selection: \"$selection\"$/" if $XSLT::debug;
 
+  # voorkom de Adam-bug
   if (($selection =~ /\/\//) || ($selection =~ /\.\./)) {
     print " "x$_indent, "    ** eerste mogelijkheid\n" if $XSLT::debug;
     if ($selection =~ /\{.*\}/i) {
@@ -484,6 +536,32 @@ sub parse_xsl_select {
   print " "x$_indent, "  valu: $value\n" if $XSLT::debug;
 
   return ($item, $attr, $value);
+}
+
+sub detect_or {
+  my $select = shift;
+  
+  my $result_value = 0;
+  if ($select =~ /\|/) {
+    $result_value = 1;
+  }
+
+  return $result_value;
+}
+
+sub parse_or {
+  my $select = shift;
+
+  my $select1 = "";
+  my $select2 = "";
+  if ($select =~ /(.*?)\|(.*)/) {
+    $select1 = $1;
+    $select2 = $2;
+  } else {
+    print "error parsing or-select occured$/" if $XSLT::debug;
+  }
+  
+  return ($select1, $select2);
 }
 
 1;

@@ -1,4 +1,4 @@
-<xsl:template select='AGENDA'><!-- AGENDA -->
+<xsl:template match='AGENDA'><!-- AGENDA -->
 <xsl:include select='test3.xsl'/>
   <HTML>
     <HEAD>
@@ -45,7 +45,7 @@
                 </xsl:choose>
                 <I>
 
-                  <xsl:sub-template select='INFO'><!-- INFO -->
+                  <xsl:sub-template match='INFO'><!-- INFO -->
 
                     <xsl:when test='TIJD'>
                       <xsl:value-of select='TIJD'/><BR></BR>

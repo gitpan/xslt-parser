@@ -1,5 +1,3 @@
-<xsl:template select='AGENDA'><!-- AGENDA -->
-
   <HTML>
     <HEAD>
       <BASE HREF="http://www.sci.kun.nl/sigma/"/>
@@ -45,7 +43,7 @@
                 </xsl:choose>
                 <I>
 
-                  <xsl:sub-template select='INFO'><!-- INFO -->
+                  <xsl:sub-template match='INFO'><!-- INFO -->
 
                     <xsl:when test='TIJD'>
                       <xsl:value-of select='TIJD'/><BR></BR>
@@ -82,5 +80,3 @@
       </TABLE>
     </BODY>
   </HTML>
-
-</xsl:template><!-- /AGENDA -->

@@ -1,9 +1,9 @@
 <xsl:stylesheet>
-  <xsl:template select="/">
+  <xsl:template match="/">
     <xsl:processing-instruction name="cml">version="1.0" encoding="ISO-8859-1"</xsl:processing-instruction>
     <![CDATA[<!DOCTYPE molecule SYSTEM "cml.dtd" []>]]>
-    <xsl:sub-template select='CML'>
-      <xsl:sub-template select='MOL'>
+    <xsl:sub-template match='CML'>
+      <xsl:sub-template match='MOL'>
 	<molecule id="{@ID}">
 	  <xsl:for-each select="XVAR">
 	    <xsl:choose>

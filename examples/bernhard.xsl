@@ -1,4 +1,4 @@
- <xsl:sub-template select="SCHADSTOFFBELASTUNG">
+ <xsl:sub-template match="SCHADSTOFFBELASTUNG">
    <BLOCKQUOTE>
 
    <TT><B>Belastungsgebiet(e):</B></TT>
